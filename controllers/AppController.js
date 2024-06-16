@@ -1,7 +1,6 @@
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
 
-
 class AppController {
   async getStatus(req, res) {
     const data = {
@@ -18,6 +17,6 @@ class AppController {
     };
     res.status(200).json(data);
   }
-};
+}
 
 module.exports = new AppController();
