@@ -3,6 +3,7 @@ const { promisify } = require('util');
 
 /**
  * A class to manage a Redis client connection and operations.
+ * @author Abdulrazzaq Liasu
  */
 class RedisClient {
   /**
