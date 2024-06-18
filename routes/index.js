@@ -18,6 +18,6 @@ router.get('/connect', AuthController.getConnect);
 
 router.get('/disconnect', AuthController.getDisconnect);
 
-router.get('/users/me', AuthController.getMe);
+router.get('/users/me', UsersController.getMe);
 
 module.exports = router;
