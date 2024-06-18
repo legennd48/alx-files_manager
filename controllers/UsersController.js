@@ -1,9 +1,10 @@
 import dbClient from '../utils/db';
+import redisClient from '../utils/redis';
 
 const encrypt = require('crypto');
 
 class UsersController {
-  async nUser(req, res) {
+  async postNew(req, res) {
     const { email, password } = req.body;
     if (!email) return res.status(400).json({ error: 'Missing email' });
     if (!password) return res.status(400).json({ error: 'Missing password' });
@@ -20,6 +21,26 @@ class UsersController {
     const userObj = await users.insertOne({ email, password: hashedpw });
     const newUser = { id: userObj.insertedId, email };
     res.status(201).json(newUser);
+  }
+
+  async getMe(req, res) {
+    const token = req.headers['x-token'];
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const key = `auth_${token}`;
+    const userId = await redisClient.get(key);
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const user = await dbClient.usersCollection().findOne({ _id: new dbClient.ObjectID(userId) });
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    return res.status(200).json({ id: user._id, email: user.email });
   }
 }
 
