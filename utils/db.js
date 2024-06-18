@@ -1,5 +1,4 @@
 import { MongoClient } from 'mongodb';
-import { promisify } from 'util';
 
 class DBClient {
   constructor() {
@@ -31,4 +30,3 @@ class DBClient {
 
 const dbClient = new DBClient();
 export default dbClient;
-

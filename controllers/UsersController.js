@@ -1,5 +1,5 @@
-import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
+
 const encrypt = require('crypto');
 
 class UsersController {
@@ -12,7 +12,7 @@ class UsersController {
     if (!users) {
       return res.status(500).json({ error: 'Database connection not initialized' });
     }
-    
+
     const user = await users.findOne({ email });
     if (user) return res.status(400).json({ error: 'Already exist' });
 
@@ -24,4 +24,3 @@ class UsersController {
 }
 
 module.exports = new UsersController();
-
