@@ -11,7 +11,7 @@ class DBClient extends EventEmitter {
     this.client = new MongoClient(`mongodb://${host}:${port}`, { useUnifiedTopology: true });
     this.client.connect().then((client) => {
       this.db = client.db(dbName);
-      this.usersCollection = this.db.collection('users');
+      this.userCollection = this.db.collection('users');
       this.emit('connected');
     }).catch((err) => {
       console.error('MongoDB connection error:', err);
@@ -23,7 +23,7 @@ class DBClient extends EventEmitter {
   }
 
   async nbUsers() {
-    return this.usersCollection.countDocuments();
+    return this.userCollection.countDocuments();
   }
 
   async nbFiles() {
