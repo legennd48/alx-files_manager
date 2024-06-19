@@ -30,10 +30,6 @@ class DBClient extends EventEmitter {
     return this.db.collection('files').countDocuments();
   }
 
-  get usersCollection() {
-    return this.db.collection('users');
-  }
-
   ObjectID(id) {
     return new ObjectID(id);
   }

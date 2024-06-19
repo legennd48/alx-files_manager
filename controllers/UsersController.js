@@ -9,7 +9,7 @@ class UsersController {
     if (!email) return res.status(400).json({ error: 'Missing email' });
     if (!password) return res.status(400).json({ error: 'Missing password' });
 
-    const users = dbClient.usersCollection;
+    const users = dbClient.db.collection('users');
     if (!users) {
       return res.status(500).json({ error: 'Database connection not initialized' });
     }
@@ -35,7 +35,7 @@ class UsersController {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const user = await dbClient.usersCollection().findOne({ _id: new dbClient.ObjectID(userId) });
+    const user = await dbClient.db.collection('users').findOne({ _id: new dbClient.ObjectID(userId) });
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
