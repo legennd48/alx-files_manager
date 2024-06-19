@@ -4,7 +4,7 @@ const router = express.Router();
 const AppController = require('../controllers/AppController');
 const UsersController = require('../controllers/UsersController');
 const AuthController = require('../controllers/AuthController');
-const FilesController = require('../controllers/FilesController');
+import FilesController from '../controllers/FilesController';
 
 // Endpoint: GET /status
 router.get('/status', AppController.getStatus);
