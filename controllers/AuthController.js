@@ -1,8 +1,8 @@
+/* eslint-disable class-methods-use-this */
 import { v4 as uuidv4 } from 'uuid';
-import crypto from 'crypto';
+import sha1 from 'sha1';
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
-import sha1 from 'sha1';
 
 class AuthController {
   async getConnect(req, res) {
@@ -14,6 +14,10 @@ class AuthController {
     const base64Credentials = authHeader.split(' ')[1];
     const credentials = Buffer.from(base64Credentials, 'base64').toString();
     const [email, password] = credentials.split(':');
+
+    if (!email || !password) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
 
     const hashedPassword = sha1(password);
     const user = await dbClient.db.collection('users').findOne({ email, password: hashedPassword });
