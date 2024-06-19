@@ -1,9 +1,11 @@
+/* eslint-disable no-console */
+/* eslint-disable no-underscore-dangle */
+/* eslint-disable import/no-extraneous-dependencies */
+/* eslint-disable no-await-in-loop */
 import Queue from 'bull';
 import { promises as fs } from 'fs';
-import path from 'path';
 import imageThumbnail from 'image-thumbnail';
-import dbClient from '../utils/db';
-import redisClient from '../utils/redis';
+import dbClient from './utils/db';
 
 const fileQueue = new Queue('fileQueue');
 

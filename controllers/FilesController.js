@@ -5,7 +5,6 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import mime from 'mime-types';
 import Queue from 'bull';
-import imageThumbnail from 'image-thumbnail';
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
 
@@ -201,7 +200,7 @@ class FilesController {
   static async getFile(req, res) {
     const token = req.headers['x-token'];
     const fileId = req.params.id;
-    const size = req.query.size;
+    const { size } = req.query;
 
     let file;
     try {
