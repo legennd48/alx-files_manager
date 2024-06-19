@@ -14,7 +14,7 @@ class DBClient extends EventEmitter {
       this.usersCollection = this.db.collection('users');
       this.emit('connected');
     }).catch((err) => {
-      console.error('MongoDB connection error:', err);
+      console.error(err);
     });
   }
 
