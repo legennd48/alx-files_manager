@@ -1,11 +1,14 @@
 /* eslint-disable consistent-return */
 /* eslint-disable class-methods-use-this */
+import Queue from 'bull';
 import { v4 as uuidv4 } from 'uuid';
 import { promises as fs } from 'fs';
 import path from 'path';
 import mime from 'mime-types';
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
+
+const fileQueue = new Queue('fileQueue');
 
 class FilesController {
   static async postUpload(req, res) {
@@ -69,57 +72,19 @@ class FilesController {
 
     fileDocument.localPath = localPath;
     const result = await dbClient.db.collection('files').insertOne(fileDocument);
+
+    // Add job to queue
+    if (type === 'image') {
+      await fileQueue.add({
+        userId,
+        fileId: result.insertedId,
+      });
+    }
+
     return res.status(201).json({
       id: result.insertedId,
       ...fileDocument,
     });
-  }
-
-  static async getShow(req, res) {
-    const token = req.headers['x-token'];
-    if (!token) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    const key = `auth_${token}`;
-    const userId = await redisClient.get(key);
-    if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    const fileId = req.params.id;
-    const file = await dbClient.db.collection('files').findOne({ _id: new dbClient.ObjectID(fileId), userId: new dbClient.ObjectID(userId) });
-
-    if (!file) {
-      return res.status(404).json({ error: 'Not found' });
-    }
-
-    return res.status(200).json(file);
-  }
-
-  static async getIndex(req, res) {
-    const token = req.headers['x-token'];
-    if (!token) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    const key = `auth_${token}`;
-    const userId = await redisClient.get(key);
-    if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    const parentId = req.query.parentId ? new dbClient.ObjectID(req.query.parentId) : 0;
-    const page = parseInt(req.query.page, 10) || 0;
-    const pageSize = 20;
-
-    const files = await dbClient.db.collection('files')
-      .find({ userId: new dbClient.ObjectID(userId), parentId })
-      .skip(page * pageSize)
-      .limit(pageSize)
-      .toArray();
-
-    return res.status(200).json(files);
   }
 
   static async putPublish(req, res) {
@@ -187,6 +152,7 @@ class FilesController {
   static async getFile(req, res) {
     const token = req.headers['x-token'];
     const fileId = req.params.id;
+    const { size } = req.query;
 
     let file;
     try {
@@ -215,12 +181,13 @@ class FilesController {
       }
     }
 
-    if (!file.localPath) {
-      return res.status(404).json({ error: 'Not found' });
+    let filePath = file.localPath;
+    if (size && ['500', '250', '100'].includes(size)) {
+      filePath = `${file.localPath}_${size}`;
     }
 
     try {
-      const fileData = await fs.readFile(file.localPath);
+      const fileData = await fs.readFile(filePath);
       const mimeType = mime.lookup(file.name) || 'application/octet-stream';
       res.setHeader('Content-Type', mimeType);
       return res.status(200).send(fileData);
