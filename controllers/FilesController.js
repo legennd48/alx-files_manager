@@ -4,8 +4,12 @@ import { v4 as uuidv4 } from 'uuid';
 import { promises as fs } from 'fs';
 import path from 'path';
 import mime from 'mime-types';
+import Queue from 'bull';
+import imageThumbnail from 'image-thumbnail';
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
+
+const fileQueue = new Queue('fileQueue');
 
 class FilesController {
   static async postUpload(req, res) {
@@ -60,6 +64,7 @@ class FilesController {
         ...fileDocument,
       });
     }
+
     const FOLDER_PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
     await fs.mkdir(FOLDER_PATH, { recursive: true });
     const fileUUID = uuidv4();
@@ -69,6 +74,15 @@ class FilesController {
 
     fileDocument.localPath = localPath;
     const result = await dbClient.db.collection('files').insertOne(fileDocument);
+
+    // Add job to queue
+    if (type === 'image') {
+      await fileQueue.add({
+        userId,
+        fileId: result.insertedId,
+      });
+    }
+
     return res.status(201).json({
       id: result.insertedId,
       ...fileDocument,
@@ -187,6 +201,7 @@ class FilesController {
   static async getFile(req, res) {
     const token = req.headers['x-token'];
     const fileId = req.params.id;
+    const size = req.query.size;
 
     let file;
     try {
@@ -215,12 +230,13 @@ class FilesController {
       }
     }
 
-    if (!file.localPath) {
-      return res.status(404).json({ error: 'Not found' });
+    let filePath = file.localPath;
+    if (size && ['500', '250', '100'].includes(size)) {
+      filePath = `${file.localPath}_${size}`;
     }
 
     try {
-      const fileData = await fs.readFile(file.localPath);
+      const fileData = await fs.readFile(filePath);
       const mimeType = mime.lookup(file.name) || 'application/octet-stream';
       res.setHeader('Content-Type', mimeType);
       return res.status(200).send(fileData);
