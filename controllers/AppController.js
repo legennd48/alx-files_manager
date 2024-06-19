@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
 
