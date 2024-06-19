@@ -3,9 +3,9 @@
 import { v4 as uuidv4 } from 'uuid';
 import { promises as fs } from 'fs';
 import path from 'path';
+import mime from 'mime-types';
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
-import mime from 'mime-types';
 
 class FilesController {
   static async postUpload(req, res) {
@@ -20,7 +20,9 @@ class FilesController {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { name, type, parentId = 0, isPublic = false, data } = req.body;
+    const {
+      name, type, parentId = 0, isPublic = false, data,
+    } = req.body;
 
     if (!name) {
       return res.status(400).json({ error: 'Missing name' });
@@ -57,21 +59,20 @@ class FilesController {
         id: result.insertedId,
         ...fileDocument,
       });
-    } else {
-      const FOLDER_PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
-      await fs.mkdir(FOLDER_PATH, { recursive: true });
-      const fileUUID = uuidv4();
-      const fileExtension = mime.extension(type);
-      const localPath = path.join(FOLDER_PATH, `${fileUUID}.${fileExtension}`);
-      await fs.writeFile(localPath, Buffer.from(data, 'base64'));
-
-      fileDocument.localPath = localPath;
-      const result = await dbClient.db.collection('files').insertOne(fileDocument);
-      return res.status(201).json({
-        id: result.insertedId,
-        ...fileDocument,
-      });
     }
+    const FOLDER_PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
+    await fs.mkdir(FOLDER_PATH, { recursive: true });
+    const fileUUID = uuidv4();
+    const fileExtension = mime.extension(type);
+    const localPath = path.join(FOLDER_PATH, `${fileUUID}.${fileExtension}`);
+    await fs.writeFile(localPath, Buffer.from(data, 'base64'));
+
+    fileDocument.localPath = localPath;
+    const result = await dbClient.db.collection('files').insertOne(fileDocument);
+    return res.status(201).json({
+      id: result.insertedId,
+      ...fileDocument,
+    });
   }
 }
 
