@@ -1,4 +1,4 @@
-/* eslint-disable import/no-named-as-default */
+/* eslint-disable class-methods-use-this */
 import dbClient from '../../utils/db';
 import { expect } from '../setup';
 
