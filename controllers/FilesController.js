@@ -186,8 +186,17 @@ class FilesController {
 
   static async getFile(req, res) {
     const token = req.headers['x-token'];
-    const fileId = req.params.id;
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
 
+    const key = `auth_${token}`;
+    const userId = await redisClient.get(key);
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const fileId = req.params.id;
     let file;
     try {
       file = await dbClient.db.collection('files').findOne({ _id: new dbClient.ObjectID(fileId) });
@@ -203,16 +212,8 @@ class FilesController {
       return res.status(400).json({ error: "A folder doesn't have content" });
     }
 
-    if (!file.isPublic) {
-      if (!token) {
-        return res.status(404).json({ error: 'Not found' });
-      }
-
-      const key = `auth_${token}`;
-      const userId = await redisClient.get(key);
-      if (!userId || userId !== file.userId.toString()) {
-        return res.status(404).json({ error: 'Not found' });
-      }
+    if (!file.isPublic && userId !== file.userId.toString()) {
+      return res.status(404).json({ error: 'Not found' });
     }
 
     if (!file.localPath) {
