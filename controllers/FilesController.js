@@ -8,7 +8,7 @@ import dbClient from '../utils/db';
 import mime from 'mime-types';
 
 class FilesController {
-  static async postNew(req, res) {
+  static async postUplead(req, res) {
     const token = req.headers['x-token'];
     if (!token) {
       return res.status(401).json({ error: 'Unauthorized' });
