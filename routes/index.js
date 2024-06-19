@@ -15,12 +15,12 @@ router.get('/stats', AppController.getStats);
 // Endpoint: POST /users
 router.post('/users', UsersController.postNew);
 
+// Auth endpoints
 router.get('/connect', AuthController.getConnect);
-
 router.get('/disconnect', AuthController.getDisconnect);
-
 router.get('/users/me', UsersController.getMe);
 
-router.post('/files', FilesController.postUpload)
+// Files endpoint
+router.post('/files', FilesController.postUpload);
 
 module.exports = router;

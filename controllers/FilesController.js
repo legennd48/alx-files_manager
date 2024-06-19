@@ -8,7 +8,7 @@ import dbClient from '../utils/db';
 import mime from 'mime-types';
 
 class FilesController {
-  static async postUplead(req, res) {
+  static async postUpload(req, res) {
     const token = req.headers['x-token'];
     if (!token) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -52,7 +52,7 @@ class FilesController {
     };
 
     if (type === 'folder') {
-      const result = await dbClient.filesCollection.insertOne(fileDocument);
+      const result = await dbClient.db.collection('files').insertOne(fileDocument);
       return res.status(201).json({
         id: result.insertedId,
         ...fileDocument,
@@ -66,7 +66,7 @@ class FilesController {
       await fs.writeFile(localPath, Buffer.from(data, 'base64'));
 
       fileDocument.localPath = localPath;
-      const result = await dbClient.filesCollection.insertOne(fileDocument);
+      const result = await dbClient.db.collection('files').insertOne(fileDocument);
       return res.status(201).json({
         id: result.insertedId,
         ...fileDocument,
