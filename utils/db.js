@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 import { MongoClient, ObjectID } from 'mongodb';
 import EventEmitter from 'events';
 
